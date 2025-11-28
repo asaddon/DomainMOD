@@ -66,32 +66,38 @@ class Cloudflare
 
     public function getDomainList($account_username, $account_id, $api_key)
     {
-        $domain_list = array();
-        $domain_count = 0;
+    $domain_list = array();
+    $domain_count = 0;
+    $page = 1;
 
-        $api_url = $this->getApiUrl($account_id, 'domainlist', '');
+    do {
+        $api_url = 'https://api.cloudflare.com/client/v4/zones?status=active&account.id=' . $account_id . '&per_page=100&page=' . $page;
         $api_results = $this->apiCall($api_url, $account_username, $api_key);
         $array_results = $this->convertToArray($api_results);
 
         if (isset($array_results['result'][0]['name'])) {
-
             foreach ($array_results['result'] as $domain) {
-
                 $domain_list[] = $domain['name'];
                 $domain_count++;
-
             }
-
         } else {
-
-            $log_message = 'Unable to get domain list';
-            $log_extra = array('Username' => $account_username, 'Account ID' => $this->format->obfusc($account_id), 'API Key' => $this->format->obfusc($api_key));
+            $log_message = 'Unable to get domain list (page ' . $page . ')';
+            $log_extra = array(
+                'Username' => $account_username,
+                'Account ID' => $this->format->obfusc($account_id),
+                'API Key' => $this->format->obfusc($api_key)
+            );
             $this->log->error($log_message, $log_extra);
-
         }
 
-        return array($domain_count, $domain_list);
+        $page++;
+        $has_more = isset($array_results['result']) && count($array_results['result']) == 100;
+
+    } while ($has_more);
+
+    return array($domain_count, $domain_list);
     }
+
 
     public function getFullInfo($account_username, $account_id, $api_key, $domain)
     {
