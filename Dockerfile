@@ -72,6 +72,11 @@
     COPY . /var/www/html/
     
     # ------------------------------------------------------------------------------
+    # Update SOFTWARE_VERSION in software.inc.php
+    # ------------------------------------------------------------------------------
+    RUN sed -i "s/const SOFTWARE_VERSION = '.*';/const SOFTWARE_VERSION = '${SOFTWARE_VERSION}';/" /var/www/html/_includes/software.inc.php
+
+    # ------------------------------------------------------------------------------
     # Permissions
     # ------------------------------------------------------------------------------
     RUN chown -R ${CUSER}:www-data /var/www/html \
